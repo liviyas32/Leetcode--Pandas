@@ -116,3 +116,30 @@ def top_three_salaries(employee: pd.DataFrame, department: pd.DataFrame) -> pd.D
     df.rename(columns = {'name_employee':'Employee','name_department':'Department','salary':'Salary'}, inplace = True)
     df = df[df['rank']<=3] [['Department','Employee','Salary']]
     return df 
+
+
+# 29th January 2026
+#11 197. Rising Temperature
+import pandas as pd
+
+def rising_temperature(weather: pd.DataFrame) -> pd.DataFrame:
+    weather.sort_values(by='recordDate', ascending = True, inplace = True)
+    weather['temp_diff'] = weather['temperature'].diff()
+    weather['recordDate_diff'] = weather['recordDate'].diff().dt.days
+    weather = weather[(weather['temp_diff']>0) & (weather['recordDate_diff']==1)][['id']]
+    return weather
+
+
+#12 262. Trips and Users
+import pandas as pd
+
+def trips_and_users(trips: pd.DataFrame, users: pd.DataFrame) -> pd.DataFrame:
+    unbanned_users = users[users['banned'] == 'No']['users_id']
+    trips = trips[trips['client_id'].isin(unbanned_users)&(trips['driver_id'].isin(unbanned_users))]
+    trips = trips[trips['request_at'].between('2013-10-01','2013-10-03')]
+    trips.rename(columns = {'request_at':'Day'}, inplace = True)
+    
+    final = trips.groupby('Day').aggregate(total_trips = ('status','count'),
+    cancelled_trips = ('status', lambda x : (x!='completed').sum())).reset_index()
+    final['Cancellation Rate'] = (final['cancelled_trips']/final['total_trips']).round(2)
+    return final[['Day','Cancellation Rate']]
