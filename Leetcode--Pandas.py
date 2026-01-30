@@ -118,7 +118,7 @@ def top_three_salaries(employee: pd.DataFrame, department: pd.DataFrame) -> pd.D
     return df 
 
 
-# 29th January 2026
+"""29th January 2026"""
 #11 197. Rising Temperature
 import pandas as pd
 
@@ -143,3 +143,101 @@ def trips_and_users(trips: pd.DataFrame, users: pd.DataFrame) -> pd.DataFrame:
     cancelled_trips = ('status', lambda x : (x!='completed').sum())).reset_index()
     final['Cancellation Rate'] = (final['cancelled_trips']/final['total_trips']).round(2)
     return final[['Day','Cancellation Rate']]
+
+
+"""30th January 2026"""
+#13 1757. Recyclable and Low Fat Products
+import pandas as pd
+
+def find_products(products: pd.DataFrame) -> pd.DataFrame:
+    products = products[(products['low_fats'] == 'Y') & (products['recyclable']=='Y')][['product_id']]
+    return products
+
+
+#14 584. Find Customer Referee
+import pandas as pd
+
+def find_customer_referee(customer: pd.DataFrame) -> pd.DataFrame:
+    customer = customer[(customer['referee_id'] !=2) | (customer['referee_id'].isna()==True)][['name']]
+    return customer
+
+
+#15 595. Big Countries
+import pandas as pd
+
+def big_countries(world: pd.DataFrame) -> pd.DataFrame:
+    world = world[(world['population']>=25000000) | (world['area']>=3000000)][['name','population','area']]
+    return world
+
+
+#16 1148. Article Views I
+import pandas as pd
+
+def article_views(views: pd.DataFrame) -> pd.DataFrame:
+    views = views[views['author_id']==views['viewer_id']][['author_id']]
+    views.rename(columns = {'author_id':'id'}, inplace = True)
+    views.drop_duplicates(subset='id', inplace = True)
+    views.sort_values(by='id',inplace = True)
+    return views
+
+
+#17 1683. Invalid Tweets
+import pandas as pd
+
+def invalid_tweets(tweets: pd.DataFrame) -> pd.DataFrame:
+    tweets = tweets[tweets['content'].str.len() > 15][['tweet_id']]
+    return tweets
+
+
+#18 1378. Replace Employee ID With The Unique Identifier
+import pandas as pd
+
+def replace_employee_id(employees: pd.DataFrame, employee_uni: pd.DataFrame) -> pd.DataFrame:
+    df = employees.merge(employee_uni, how='left', on='id')
+    return df[['unique_id','name']]
+
+
+#19 1068. Product Sales Analysis I
+import pandas as pd
+
+def sales_analysis(sales: pd.DataFrame, product: pd.DataFrame) -> pd.DataFrame:
+    df = sales.merge(product, how='left', on='product_id')
+    df = df[['product_name','year','price']]
+    return df
+
+
+#20 1581. Customer Who Visited but Did Not Make Any Transactions
+import pandas as pd
+
+def find_customers(visits: pd.DataFrame, transactions: pd.DataFrame) -> pd.DataFrame:
+    df = visits.merge(transactions, how = 'left', on='visit_id')
+    df = df[df['transaction_id'].isna()==True]
+    result = df.groupby('customer_id').aggregate(count_no_trans = ('customer_id','size')).reset_index()
+    result.sort_values(by='count_no_trans', ascending = False, inplace = True)
+    return result
+
+
+#21 197. Rising Temperature
+import pandas as pd
+
+def rising_temperature(weather: pd.DataFrame) -> pd.DataFrame:
+    weather.sort_values(by='recordDate', ascending=True, inplace = True)
+    weather['date_diff'] = weather['recordDate'].diff().dt.days
+    weather['temp_diff'] = weather['temperature'].diff()
+    weather = weather[(weather['date_diff']==1)&(weather['temp_diff']>0)][['id']]
+    return weather
+
+
+#22 1661. Average Time of Process per Machine
+import pandas as pd
+
+def get_average_time(activity: pd.DataFrame) -> pd.DataFrame:
+    start_activity = activity[activity['activity_type']=='start']
+    end_activity = activity[activity['activity_type'] =='end']
+    df = start_activity.merge(end_activity, how='inner', on=['machine_id','process_id'], suffixes = ('_s','_e'))
+    df['diff'] = df['timestamp_e']-df['timestamp_s']
+    result = df.groupby('machine_id').aggregate(processing_time=('diff','mean')).reset_index().round(3)
+    return result
+
+
+
