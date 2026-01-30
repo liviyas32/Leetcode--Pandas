@@ -240,4 +240,57 @@ def get_average_time(activity: pd.DataFrame) -> pd.DataFrame:
     return result
 
 
+#23 577. Employee Bonus
+import pandas as pd
 
+def employee_bonus(employee: pd.DataFrame, bonus: pd.DataFrame) -> pd.DataFrame:
+    df = employee.merge(bonus, how = 'left', on='empId')
+    df = df[(df['bonus'] < 1000) | (df['bonus'].isna() == True)][['name','bonus']]
+    return df
+
+
+#24 1280. Students and Examinations
+import pandas as pd
+
+def students_and_examinations(students: pd.DataFrame, subjects: pd.DataFrame, examinations: pd.DataFrame) -> pd.DataFrame:
+    d1 = students.merge(subjects, how = 'cross')
+    d2 = examinations.groupby(['student_id','subject_name']).size().reset_index(name='attended_exams')
+    df = d1.merge(d2, how='left', on=['student_id','subject_name'])
+    df['attended_exams'].fillna(0, inplace = True)
+    df.sort_values(by=['student_id','subject_name'], ascending=True, inplace = True)
+    return df
+
+
+#25 570. Managers with at Least 5 Direct Reports
+import pandas as pd
+
+def find_managers(employee: pd.DataFrame) -> pd.DataFrame:
+    result = employee.groupby('managerId').size().reset_index(name='reporting_count')
+    result = result[result['reporting_count']>=5]
+    df = employee[employee['id'].isin(result['managerId'])][['name']]
+    return df
+
+
+#26 1934. Confirmation Rate
+import pandas as pd
+
+def confirmation_rate(signups: pd.DataFrame, confirmations: pd.DataFrame) -> pd.DataFrame:
+    total = confirmations.groupby('user_id').size().reset_index(name='total_attempts')
+    confirmed = confirmations[confirmations['action']=='confirmed'].groupby('user_id').size().reset_index(name='confirmed_attempts')
+    d1 = total.merge(confirmed, how='left', on='user_id')
+    df = signups.merge(d1, how = 'left', on='user_id')
+    df['confirmation_rate'] = (df['confirmed_attempts']/df['total_attempts']).round(2)
+    df.fillna(0,inplace=True)
+    return df[['user_id','confirmation_rate']]
+
+
+#27 620. Not Boring Movies
+import pandas as pd
+
+def not_boring_movies(cinema: pd.DataFrame) -> pd.DataFrame:
+    cinema = cinema[(cinema['id']%2 !=0) & (cinema['description'].ne('boring'))]
+    cinema.sort_values(by='rating', ascending=False, inplace = True)
+    return cinema
+
+
+#28 1251. Average Selling Price
