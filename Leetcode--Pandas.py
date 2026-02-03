@@ -345,3 +345,46 @@ def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
 
     return final
 
+
+""" 3rd February 2026 """
+#32 1193. Monthly Transactions I
+import pandas as pd
+import numpy as np
+
+def monthly_transactions(transactions: pd.DataFrame) -> pd.DataFrame:
+    transactions['month'] = pd.to_datetime(transactions['trans_date']).dt.strftime('%Y-%m')
+    transactions['approved'] = transactions['state'] == 'approved'
+    transactions['approved_amount'] = np.where(transactions['state'] == 'approved', transactions['amount'], 0)
+    
+    result = transactions.groupby(['month','country'], dropna = False).aggregate(trans_count = ('trans_date','size'), approved_count = ('approved','sum'), trans_total_amount = ('amount', 'sum'), approved_total_amount = ('approved_amount','sum')).reset_index()
+    return result
+
+
+#33 1174. Immediate Food Delivery II
+import pandas as pd
+import numpy as np
+
+def immediate_food_delivery(delivery: pd.DataFrame) -> pd.DataFrame:
+    first_order_dates = delivery.groupby('customer_id')['order_date'].min().reset_index(name = 'first_date')
+    result = delivery.merge(first_order_dates, left_on=['customer_id','order_date'], right_on=['customer_id','first_date'])
+    
+    immediate_orders = len(result[result['order_date']==result['customer_pref_delivery_date']])
+    total_orders = len(first_order_dates)
+
+    immediate_percentage = round(immediate_orders/total_orders*100,2)
+    
+    df = pd.DataFrame({'immediate_percentage' : [immediate_percentage]})
+    return df
+
+
+import pandas as pd
+
+def immediate_food_delivery(delivery: pd.DataFrame) -> pd.DataFrame:    
+    delivery.sort_values(by = ['customer_id','order_date'], ascending = [True,True], inplace = True)
+    delivery.drop_duplicates(subset = ['customer_id'],keep = 'first', inplace = True)
+    delivery['is_immediate'] = delivery['order_date'] == delivery['customer_pref_delivery_date']
+
+    return pd.DataFrame({'immediate_percentage' : [delivery['is_immediate'].mean().round(4)*100]})
+
+
+#34 550. Game Play Analysis IV
