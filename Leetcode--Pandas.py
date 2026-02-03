@@ -293,4 +293,55 @@ def not_boring_movies(cinema: pd.DataFrame) -> pd.DataFrame:
     return cinema
 
 
+"""2nd February 2026"""
 #28 1251. Average Selling Price
+import pandas as pd
+import numpy as np
+
+def average_selling_price(prices: pd.DataFrame, units_sold: pd.DataFrame) -> pd.DataFrame:
+    df = pd.merge(prices, units_sold, how='left', on = 'product_id')
+    df = df[(df['purchase_date'].isna() == True) | df['purchase_date'].between(df['start_date'], df['end_date'])]
+    df['total_price'] = df['price']*df['units']
+    df.fillna(0, inplace = True)
+    result = df.groupby('product_id').aggregate(final_price = ('total_price', 'sum'), final_count = ('units','sum')).reset_index()
+    result['average_price'] = np.where(result['final_count']==0,0,(result['final_price']/result['final_count'])).round(2) 
+    
+    return result[['product_id','average_price']]
+
+
+#29 1075. Project Employees I
+import pandas as pd
+
+def project_employees_i(project: pd.DataFrame, employee: pd.DataFrame) -> pd.DataFrame:
+    df = project.merge(employee, on='employee_id', how='left')
+    result = df.groupby('project_id').aggregate(average_years = ('experience_years','mean')).round(2).reset_index()
+    return result
+
+
+#30 1633. Percentage of Users Attended a Contest
+import pandas as pd
+
+def users_percentage(users: pd.DataFrame, register: pd.DataFrame) -> pd.DataFrame:
+    unique_users = users['user_id'].nunique()
+    contest_users = register.groupby('contest_id').aggregate(contest_user = ('user_id','size')).reset_index()
+    contest_users['percentage'] = (contest_users['contest_user']/unique_users*100).round(2)
+    contest_users.sort_values(by=['percentage','contest_id'], ascending = [False,True], inplace = True)
+    return contest_users[['contest_id','percentage']]
+
+
+#31 1211. Queries Quality and Percentage
+import pandas as pd
+import numpy as np
+
+def queries_stats(queries: pd.DataFrame) -> pd.DataFrame:
+    queries['qr_ratio'] = (queries['rating']/queries['position'])
+    queries['is_poor'] = queries['rating']<3
+
+    final = queries.groupby('query_name').aggregate(quality = ('qr_ratio', 'mean'), poor_query_percentage = ('is_poor', lambda x : x.mean()*100)).sort_values(by='query_name').reset_index()
+
+    #to handle rounding issue
+    final['quality'] = np.floor(final['quality'] * 100 + 0.5) / 100
+    final['poor_query_percentage'] = np.floor(final['poor_query_percentage'] * 100 + 0.5) / 100
+
+    return final
+
