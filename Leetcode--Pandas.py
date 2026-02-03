@@ -388,3 +388,105 @@ def immediate_food_delivery(delivery: pd.DataFrame) -> pd.DataFrame:
 
 
 #34 550. Game Play Analysis IV
+import pandas as pd
+
+def gameplay_analysis(activity: pd.DataFrame) -> pd.DataFrame:
+    #activity.sort_values(by=['player_id','event_date'], inplace = True)
+    #activity['date_diff'] = activity['event_date'].diff().dt.days
+    #consecutive_logins = len(activity[activity['date_diff']==1])
+    #total_logins = activity['player_id'].nunique()
+    #return pd.DataFrame({'fraction' : [round((consecutive_logins/total_logins),2)]})
+
+    activity['event_date'] = pd.to_datetime(activity['event_date'])
+    df = activity.groupby('player_id').agg(first_logged = ('event_date','min')).reset_index()
+    df['next_logged'] = df['first_logged']+pd.Timedelta(days=1)
+
+    result = df.merge(activity, left_on = ['player_id','next_logged'], right_on = ['player_id','event_date'], how = 'left')
+    consecutive_login = len(result[result['event_date'].isna() == False])
+    total_logins = len(result)
+
+    return pd.DataFrame({'fraction' : [round(consecutive_login/total_logins,2)]})
+
+
+#35 2356. Number of Unique Subjects Taught by Each Teacher
+import pandas as pd
+
+def count_unique_subjects(teacher: pd.DataFrame) -> pd.DataFrame:
+    teacher.sort_values(by=['teacher_id','subject_id'], ascending = [True,True], inplace = True)
+    teacher.drop_duplicates(subset = ['teacher_id','subject_id'], keep = 'first', inplace = True)
+    result = teacher.groupby('teacher_id').agg(cnt = ('subject_id','size')).reset_index()
+    return result
+
+
+#36 1141. User Activity for the Past 30 Days I
+import pandas as pd
+
+def user_activity(activity: pd.DataFrame) -> pd.DataFrame:
+    end_date = pd.to_datetime('2019-07-27')
+    start_date = end_date - pd.Timedelta('29 days')
+
+    activity = activity[activity['activity_date'].between(start_date, end_date)]
+    activity.drop_duplicates(subset= ['user_id','activity_date'], keep='first', inplace = True)
+
+    result = activity.groupby('activity_date')['user_id'].size().reset_index(name='active_users')
+    result.rename(columns={'activity_date':'day'}, inplace = True)
+    
+    return result
+
+
+#37 1070. Product Sales Analysis III
+import pandas as pd
+
+def sales_analysis(sales: pd.DataFrame) -> pd.DataFrame:
+    first_year = sales.groupby('product_id')['year'].min().reset_index(name = 'first_year')
+    result = sales.merge(first_year, left_on = ['product_id','year'], right_on = ['product_id','first_year'])
+    return result[['product_id','first_year', 'quantity', 'price']]
+
+
+#38 596. Classes With at Least 5 Students
+import pandas as pd
+
+def find_classes(courses: pd.DataFrame) -> pd.DataFrame:
+    courses.drop_duplicates(inplace = True)
+    result = courses.groupby('class').size().reset_index(name = 'count')
+    result = result[result['count']>=5]
+    return result[['class']]
+
+
+#39 1729. Find Followers Count
+import pandas as pd
+
+def count_followers(followers: pd.DataFrame) -> pd.DataFrame:
+    followers.drop_duplicates(inplace = True)
+    result = followers.groupby('user_id').size().reset_index(name='followers_count')
+    return result
+
+
+#40 619. Biggest Single Number
+import pandas as pd
+
+def biggest_single_number(my_numbers: pd.DataFrame) -> pd.DataFrame:
+    
+    result = my_numbers.groupby('num').size().reset_index(name='count')
+    result.sort_values(by='num', ascending=False, inplace = True)    
+    result = result[result['count']==1]
+    if len(result)>0:
+        return pd.DataFrame({'num':[result['num'].iloc[0]]})
+    else:
+        return pd.DataFrame({'num' : [None]})
+
+
+#41 1045. Customers Who Bought All Products
+import pandas as pd
+
+def find_customers(customer: pd.DataFrame, product: pd.DataFrame) -> pd.DataFrame:
+    total_unique_products = product['product_key'].drop_duplicates().nunique()
+
+    customer.drop_duplicates(inplace=True)
+    result = customer.groupby('customer_id').agg(unique_products = ('product_key', 'count')).reset_index()
+    result = result[result['unique_products'] == total_unique_products]
+
+    return result[['customer_id']]
+
+
+#42 1731. The Number of Employees Which Report to Each Employee
